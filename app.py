@@ -8,6 +8,7 @@ ROW_URL = "http://localhost:8080/api/data"
 AI_URL = "http://localhost:8080/api/ai"
 CHART_URL = "http://localhost:8080/api/charts"
 
+st.set_page_config(layout = 'wide', page_title="Analyse Your File")
 st.title("AI-Powered File Analysis App")
 
 # to upload file 
@@ -15,32 +16,44 @@ st.header("Upload a CSV/Excel File")
 uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx"])
 
 if uploaded_file:
-    files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
-    response = requests.post(f"{BASE_URL}/upload", files=files)
 
-    if response.status_code == 200:
-        st.success("File uploaded successfully!")
-    else:
-        st.error(f"Upload failed: {response.text}")
+    col1, col2 = st.columns([1,1])
 
-#to view top N rows
-st.header("View Top N Rows from File")
-file_name = st.text_input("Enter File Name:")
-sheet_name = st.text_input("Enter Sheet Name (For Excel)")
-n_rows = st.number_input("Enter Number of Rows:", min_value=1, step=1)
+    #to show the uploaded file as a table
+    with col2:
+        if uploaded_file:
+            dataframe = pd.read_csv(uploaded_file)
+            st.write(dataframe)
 
-if st.button("Fetch Data"):
-    if file_name and sheet_name and n_rows > 0:
-        payload = {"fileName": file_name, "sheetName": sheet_name, "n": n_rows}
-        response = requests.post(f"{ROW_URL}/top-rows", json=payload)
+    with col1:
+        
+        files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
+        response = requests.post(f"{BASE_URL}/upload", files=files)
 
         if response.status_code == 200:
-            df = pd.DataFrame(response.json())
-            st.dataframe(df)
+            st.success("File uploaded successfully!")
         else:
-            st.error(f"Failed to fetch data: {response.text}")
-else: 
-    st.warning("Please enter file name, sheet name, and number of rows.")
+            st.error(f"Upload failed: {response.text}")
+
+
+        #to view top N rows
+        st.header("View Top N Rows from File")
+        file_name = st.text_input("Enter File Name:")
+        sheet_name = st.text_input("Enter Sheet Name (For Excel)")
+        n_rows = st.number_input("Enter Number of Rows:", min_value=1, step=1)
+
+        if st.button("Fetch Data"):
+            if file_name and sheet_name and n_rows > 0:
+                payload = {"fileName": file_name, "sheetName": sheet_name, "n": n_rows}
+                response = requests.post(f"{ROW_URL}/top-rows", json=payload)
+
+                if response.status_code == 200:
+                    df = pd.DataFrame(response.json())
+                    st.dataframe(df)
+                else:
+                    st.error(f"Failed to fetch data: {response.text}")
+        else: 
+            st.warning("Please enter file name, sheet name, and number of rows.")
 
 
 #Ask AI a Question
