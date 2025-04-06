@@ -44,8 +44,10 @@ async def upload_files(files: List[UploadFile] = File(...)) -> Dict[str, str]:
             if filename.lower().endswith(".csv"):
                 # Parse entire CSV into one DataFrame
                 df = pd.read_csv(BytesIO(file_bytes))
+                data_store[filename] = df
             elif filename.lower().endswith(".xls"):
                 df = pd.read_excel(BytesIO(file_bytes), engine="xlrd")  # Use xlrd for .xls
+                data_store[filename] = df
             elif filename.lower().endswith(".xlsx"):
                 df = pd.read_excel(BytesIO(file_bytes), engine="openpyxl")
                 data_store[filename] = df
